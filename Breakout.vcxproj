@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ball_object_collision.cpp" />
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\game_level.cpp" />
     <ClCompile Include="src\game_object.cpp" />
@@ -149,6 +150,7 @@
     <ClCompile Include="src\texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ball_object_collisions.h" />
     <ClInclude Include="src\game.h" />
     <ClInclude Include="src\game_level.h" />
     <ClInclude Include="src\game_object.h" />
