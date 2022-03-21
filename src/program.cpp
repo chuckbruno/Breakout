@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 #ifndef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-	glfwWindowHint(GLFW_RESIZABLE, false);
+	//glfwWindowHint(GLFW_RESIZABLE, false);
 
 	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Breadout", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
