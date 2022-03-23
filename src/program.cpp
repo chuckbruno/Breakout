@@ -32,6 +32,7 @@ int main(int argc, char* argv[])
 	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Breadout", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
+
 	// glad: load all OpenGL function pointers
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -46,6 +47,7 @@ int main(int argc, char* argv[])
 	glViewport(0, 0, SCREEN_HEIGHT, SCREEN_HEIGHT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	// initialize game
 	Breakout.Init();
