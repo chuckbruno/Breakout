@@ -52,6 +52,12 @@ void Game::Init()
 	ResourceManager::LoadTexture("textures/block_solid.png", false, "block_solid");
 	ResourceManager::LoadTexture("textures/paddle.png", true, "paddle");
 	ResourceManager::LoadTexture("textures/particle.png", true, "particle");
+	ResourceManager::LoadTexture("textures/powerup_speed.png", true, "powerup_speed");
+	ResourceManager::LoadTexture("textures/powerup_sticky.png", true, "powerup_sticky");
+	ResourceManager::LoadTexture("textures/powerup_increase.png", true, "powerup_increase");
+	ResourceManager::LoadTexture("textures/powerup_confuse.png", true, "powerup_confuse");
+	ResourceManager::LoadTexture("textures/powerup_chaos.png", true, "powerup_chaos");
+	ResourceManager::LoadTexture("textures/powerup_passthrough.png", true, "powerup_passthrough");
 
 	// set render-specific controls
 	auto _shader = ResourceManager::GetShader("sprite");
@@ -147,6 +153,10 @@ void Game::Render()
 		this->Levels[this->Level].Draw(*Renderer);
 		// draw player
 		Player->Draw(*Renderer);
+		// draw PowerUps
+		for (PowerUp& powerUp : this->PowerUps)
+			if (!powerUp.Destroyed)
+				powerUp.Draw(*Renderer);
 		// draw particles
 		Particles->Draw();
 		// draw ball
@@ -180,6 +190,66 @@ void Game::ResetPlayer()
 	Player->Size = PLAYER_SIZE;
 	Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
 	Ball->Reset(Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -(BALL_RADIUS * 2.0f)), INITIAL_BALL_VELOCITY);
+}
+
+// powerups
+bool IsOtherPowerUpActive(std::vector<PowerUp>& powerUps, std::string type);
+
+void Game::UpdatePowerUps(float dt)
+{
+	for (PowerUp& powerUp : this->PowerUps)
+	{
+		powerUp.Position += powerUp.Velocity * dt;
+		if (powerUp.Actived)
+		{
+			powerUp.Duration -= dt;
+			if (powerUp.Duration < 0.0f)
+			{
+				// remove powerup from list (will later be removed)
+				powerUp.Actived = false;
+				if (powerUp.Type = "sticky")
+				{
+					if (!IsOtherPowerUpActive(this->PowerUps, "sticky"))
+					{
+						//only reset if no other PowerUp of type sticky is active
+						Ball->Stuck = false;
+						Player->Color = glm::vec3(1.0f);
+					}
+				}
+				else if (powerUp.Type == "pass-through")
+				{
+					if (!IsOtherPowerUpActive(this->PowerUps, "pass-through"))
+					{
+						// only reset if no other PowerUp of type pass-through is active
+						Ball->PassThrough = false;
+						Ball->Color = glm::vec3(1.0f);
+					}
+				}
+				else if (powerUp.Type == "confuse")
+				{
+					if (!IsOtherPowerUpActive(this->PowerUps, "confuse"))
+					{
+						// only reset if no other PowerUp of type confuse is active
+						Effects->Confuse = false;
+					}
+				}
+				else if (powerUp.Type == "chaos")
+				{
+					if (!IsOtherPowerUpActive(this->PowerUps, "chaos"))
+					{
+						// only reset if no other PowerUp of type chaos is active
+						Effects->Chaos = false;
+					}
+				}
+			}
+		}
+	}
+
+	// Remove all PowerUps from vector that are destroyed AND! actived (thus either off the map or finished)
+	// Note we use a lambda expression to remove each PowerUp which is destroyed and not actived
+	this->PowerUps.erase(std::remove_if(this->PowerUps.begin(), this->PowerUps.end(),
+		[](const PowerUp& powerUp) {return powerUp.Destroyed && !powerUp.Actived; }),
+		this->PowerUps.end());
 }
 
 // collision detection

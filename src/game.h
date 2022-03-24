@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game_level.h"
+#include "power_up.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -40,6 +41,7 @@ public:
 	unsigned int Width, Height;
 
 	std::vector<GameLevel> Levels;
+	std::vector<PowerUp> PowerUps;
 	unsigned int Level;
 
 	Game(unsigned int width, unsigned int height);
@@ -55,6 +57,9 @@ public:
 	// reset
 	void ResetLevel();
 	void ResetPlayer();
+	// powerups
+	void SpawnPowerUps(GameObject& block);
+	void UpdatePowerUps(float dt);
 
 };
 
