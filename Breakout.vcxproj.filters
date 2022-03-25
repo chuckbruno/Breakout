@@ -39,7 +39,7 @@
     <ClCompile Include="src\game_level.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ball_object_collision.cpp">
+    <ClCompile Include="src\ball_object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\particle_generator.cpp">
@@ -71,13 +71,16 @@
     <ClInclude Include="src\game_level.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ball_object_collisions.h">
+    <ClInclude Include="src\ball_object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\particle_generator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\post_processor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\power_up.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

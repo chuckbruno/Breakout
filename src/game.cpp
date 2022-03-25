@@ -1,11 +1,16 @@
+#include <iostream>
+
+#include <irrKlang/irrKlang.h>
+
 #include "game.h"
-#include "ball_object_collisions.h"
 #include "resource_manager.h"
 #include "sprite_renderer.h"
+#include "game_object.h"
+#include "ball_object.h"
 #include "particle_generator.h"
 #include "post_processor.h"
 
-#include <iostream>
+#pragma comment(lib, "irrKlang.lib") // link with irrKlang.dll
 
 // Game-related State data
 SpriteRenderer* Renderer;
@@ -13,6 +18,7 @@ GameObject* Player;
 BallObject* Ball;
 ParticleGenerator* Particles;
 PostProcessor* Effects;
+irrklang::ISoundEngine* SoundEngine = irrklang::createIrrKlangDevice();
 
 float ShakeTime = 0.0f;
 
@@ -30,6 +36,7 @@ Game::~Game()
 	delete Ball;
 	delete Particles;
 	delete Effects;
+	SoundEngine->drop();
 }
 
 void Game::Init()
@@ -83,6 +90,8 @@ void Game::Init()
 	Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
 	glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
 	Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("face"));
+	// audio
+	SoundEngine->play2D("audios/breakout.mp3", true);
 }
 
 void Game::Update(float dt)
@@ -174,11 +183,11 @@ void Game::ResetLevel()
 {
 	if (this->Level == 0)
 		this->Levels[0].Load("levels/one.lvl", this->Width, this->Height / 2);
-	else if(this->Level == 1)
+	else if (this->Level == 1)
 		this->Levels[1].Load("levels/two.lvl", this->Width, this->Height / 2);
-	else if(this->Level == 2)
+	else if (this->Level == 2)
 		this->Levels[2].Load("levels/three.lvl", this->Width, this->Height / 2);
-	else if(this->Level == 3)
+	else if (this->Level == 3)
 		this->Levels[3].Load("levels/four.lvl", this->Width, this->Height / 2);
 
 }
@@ -189,6 +198,11 @@ void Game::ResetPlayer()
 	Player->Size = PLAYER_SIZE;
 	Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
 	Ball->Reset(Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -(BALL_RADIUS * 2.0f)), INITIAL_BALL_VELOCITY);
+	// also disable all active powerups
+	Effects->Chaos = Effects->Confuse = false;
+	Ball->PassThrough = Ball->Sticky = false;
+	Player->Color = glm::vec3(1.0f);
+	Ball->Color = glm::vec3(1.0f);	
 }
 
 // powerups
@@ -196,7 +210,6 @@ bool IsOtherPowerUpActive(std::vector<PowerUp>& powerUps, std::string type);
 
 void Game::UpdatePowerUps(float dt)
 {
-	std::cout << PowerUps.size() << std::endl;
 	for (PowerUp& powerUp : this->PowerUps)
 	{
 		powerUp.Position += powerUp.Velocity * dt;
@@ -256,49 +269,40 @@ void Game::UpdatePowerUps(float dt)
 bool ShouldSpawn(unsigned int chance)
 {
 	unsigned int random = rand() % chance;
-	return random;
-	//return random == 0;
+	//return random;
+	return random == 0;
 }
 
 void Game::SpawnPowerUps(GameObject& block)
 {
-	std::cout << "spawn number: " << ShouldSpawn(75) << std::endl;
 	if (ShouldSpawn(75)) // 1 in 75 chance
 	{
-		std::cout << "speed" << std::endl;
 		this->PowerUps.push_back(PowerUp("speed", glm::vec3(0.5f, 0.5f, 1.0f), 0.0f, block.Position, ResourceManager::GetTexture("powerup_speed")));
 	}
-	//if (ShouldSpawn(75))
-	//{
-	//	std::cout << "sticky" << std::endl;
-	//	this->PowerUps.push_back(PowerUp("sticky", glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, block.Position, ResourceManager::GetTexture("powerup_sticky")));
-	//
-	//}
+	if (ShouldSpawn(75))
+	{
+		this->PowerUps.push_back(PowerUp("sticky", glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, block.Position, ResourceManager::GetTexture("powerup_sticky")));
+
+	}
 
 	if (ShouldSpawn(75))
 	{
-		std::cout << "pass-through" << std::endl;
 		this->PowerUps.push_back(PowerUp("pass-through", glm::vec3(0.5f, 1.0f, 0.5f), 10.0f, block.Position, ResourceManager::GetTexture("powerup_passthrough")));
 
 	}
 	if (ShouldSpawn(75))
 	{
-	
-		std::cout << "pad-size-increase" << std::endl;
 		this->PowerUps.push_back(PowerUp("pad-size-increase", glm::vec3(1.0f, 0.6f, 0.4f), 0.0f, block.Position, ResourceManager::GetTexture("powerup_increase")));
-	
 	}
 
 	if (ShouldSpawn(15)) // Negative powerups should spawn more often
 	{
-		std::cout << "confuse" << std::endl;
 		this->PowerUps.push_back(PowerUp("confuse", glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_confuse")));
 
 	}
 	if (ShouldSpawn(15))
 	{
 
-		std::cout << "chaos" << std::endl;
 		this->PowerUps.push_back(PowerUp("chaos", glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_chaos")));
 	}
 
@@ -369,11 +373,13 @@ void Game::DoCollisions()
 				{
 					box.Destroyed = true;
 					this->SpawnPowerUps(box);
+					SoundEngine->play2D("audios/bleep.mp3", false);
 				}
 				else
 				{   // if block is solid, enable shake effect
 					ShakeTime = 0.05f;
 					Effects->Shake = true;
+					SoundEngine->play2D("audios/solid.wav", false);
 				}
 				// collision resolution
 				Direction dir = std::get<1>(collision);
@@ -422,6 +428,7 @@ void Game::DoCollisions()
 				ActivatePowerUp(powerUp);
 				powerUp.Destroyed = true;
 				powerUp.Activated = true;
+				SoundEngine->play2D("audios/powerup.wav", false);
 			}
 		}
 	}
@@ -449,6 +456,8 @@ void Game::DoCollisions()
 		std::cout << Ball->Sticky << std::endl;
 		std::cout << "<------------------" << std::endl;*/
 		Ball->Stuck = Ball->Sticky;
+
+		SoundEngine->play2D("audios/bleep.wav", false);
 	}
 }
 
@@ -460,7 +469,6 @@ bool CheckCollision(GameObject& one, GameObject& two)
 	// collision y-axis?
 	bool collisionY = one.Position.y + one.Size.y >= two.Position.y &&
 		two.Position.y + two.Size.y >= one.Position.y;
-
 	// collision only if on both axes
 	return collisionX && collisionY;
 }
@@ -494,7 +502,6 @@ Direction VectorDirection(glm::vec2 target)
 		glm::vec2(0.0f, -1.0f), // down
 		glm::vec2(-1.0f, 0.0f) //left
 	};
-
 	float max = 0.0f;
 	unsigned int best_match = -1;
 	for (unsigned int i = 0; i < 4; ++i)
@@ -506,6 +513,5 @@ Direction VectorDirection(glm::vec2 target)
 			best_match = i;
 		}
 	}
-
 	return (Direction)best_match;
 }
