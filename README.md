@@ -2,4 +2,4 @@
 
 ### packages managed by vcpkg, like glm, glfw, glad etc
 
-![/images/demo.png]
+![Demo](/images/demo.png)
