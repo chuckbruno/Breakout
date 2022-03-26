@@ -48,6 +48,9 @@
     <ClCompile Include="src\post_processor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\text_renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\game.h">
@@ -81,6 +84,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\power_up.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\text_renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
